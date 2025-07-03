@@ -25,9 +25,9 @@ class HomeScreen extends StatelessWidget {
             title: Text(
               'E&C\nCarwash',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
+                fontFamily: 'Poppins-bold',
                 color: Colors.blue[400],
                 height: 1.2,
                 shadows: const [

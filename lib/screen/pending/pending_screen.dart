@@ -25,7 +25,7 @@ class PendingScreen extends StatelessWidget {
             title: Text(
               'E&C\nCarwash',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue[400],
                 height: 1.2,
@@ -47,7 +47,6 @@ class PendingScreen extends StatelessWidget {
           ),
         ),
       ),
-
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -72,7 +71,6 @@ class PendingScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               // Pending Cards
               Expanded(
                 child: ListView.builder(
@@ -95,65 +93,44 @@ class PendingScreen extends StatelessWidget {
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        children: const [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
+                            children: [
                               Text('Date:', style: TextStyle(color: Colors.white)),
                               Text('05/27/2025', style: TextStyle(color: Colors.white)),
                             ],
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
+                            children: [
                               Text('Car Type:', style: TextStyle(color: Colors.white)),
                               Text('Sedan', style: TextStyle(color: Colors.white)),
                             ],
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
+                            children: [
                               Text('Total:', style: TextStyle(color: Colors.white)),
                               Text('290.00', style: TextStyle(color: Colors.white)),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // Detail action
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black,
-                                minimumSize: const Size(70, 32), // smaller size
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                textStyle: const TextStyle(fontSize: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                elevation: 2,
-                              ),
-                              child: const Text("Detail"),
-                            ),
-                          ),
-
                         ],
                       ),
                     );
                   },
                 ),
               ),
-
               // Bottom Navigation
               Padding(
                 padding: const EdgeInsets.only(bottom: 12, top: 8),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.center, // Center the buttons
                   children: [
                     _buildNavButton(context, 'Home', false),
+                    const SizedBox(width: 16),
                     _buildNavButton(context, 'Pending', true), // <- Now active
+                    const SizedBox(width: 16),
                     _buildNavButton(context, 'History', false),
                   ],
                 ),
@@ -174,10 +151,17 @@ class PendingScreen extends StatelessWidget {
         backgroundColor: isActive ? Colors.tealAccent : Colors.white,
         foregroundColor: Colors.black,
         shadowColor: Colors.black,
-        elevation: 4,
+        elevation: 6, // Slightly higher elevation for smoother shadow effect
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12), // Adjust button padding for better spacing
       ),
-      child: Text(title),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
     );
   }
 }
