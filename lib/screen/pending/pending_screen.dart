@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class PendingScreen extends StatefulWidget {
@@ -41,7 +42,7 @@ class _PendingScreenState extends State<PendingScreen> {
             elevation: 0,
             automaticallyImplyLeading: false,
             title: const Text(
-              'E&C\\nCarwash',
+              'E&C\nCarwash',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
@@ -56,7 +57,8 @@ class _PendingScreenState extends State<PendingScreen> {
                 child: const Padding(
                   padding: EdgeInsets.only(right: 16),
                   child: CircleAvatar(
-                    backgroundImage: NetworkImage('https://www.example.com/your-profile-image.jpg'),
+                    backgroundImage:
+                    NetworkImage('https://www.example.com/your-profile-image.jpg'),
                     radius: 18,
                   ),
                 ),
@@ -137,10 +139,8 @@ class _PendingScreenState extends State<PendingScreen> {
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
-                          backgroundColor: Colors.white,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                          ),
+                          backgroundColor: Colors.transparent,
+                          isScrollControlled: true,
                           builder: (_) => _bookingDetailsPopup(context, index, status),
                         );
                       },
@@ -216,110 +216,157 @@ class _PendingScreenState extends State<PendingScreen> {
   }
 
   Widget _bookingDetailsPopup(BuildContext context, int index, String status) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Align(
-              alignment: Alignment.topLeft,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, size: 24),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Car Type:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('Sedan'),
-              ],
-            ),
-            const SizedBox(height: 6),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Date:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('05/27/2025'),
-              ],
-            ),
-            const SizedBox(height: 6),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Time:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('9:30 am'),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text('Services:', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text('EC1'), Text('130.00')],
-            ),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text('EC1'), Text('160.00')],
-            ),
-            const Divider(thickness: 1, height: 20),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Total:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('290.00'),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: status == 'pending'
-                  ? ElevatedButton(
-                onPressed: () {
-                  _cancelBooking(index);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF65D6E0),
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  shadowColor: Colors.black54,
-                  elevation: 4,
-                ),
-                child: const Text(
-                  'Cancel Booking',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [Shadow(blurRadius: 2, offset: Offset(1, 1))],
-                  ),
-                ),
-              )
-                  : Container(
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                decoration: BoxDecoration(
-                  color: status == 'cancelled'
-                      ? Colors.redAccent.shade100
-                      : const Color(0xFFD0F0F2),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Text(
-                  status == 'cancelled' ? 'Booking Cancelled' : 'Approved by admin',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: status == 'cancelled'
-                        ? Colors.red.shade700
-                        : const Color(0xFF3B7A85),
-                  ),
-                ),
-              ),
-            ),
-          ],
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF2299A2), Color(0xFF1F7E90)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  )
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.directions_car, size: 36, color: Color(0xFF2299A2)),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Booking Details",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF165661),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _infoRowWithIcon(Icons.directions_car, 'Car Type', 'Sedan'),
+                  _infoRowWithIcon(Icons.calendar_today, 'Date', '05/27/2025'),
+                  _infoRowWithIcon(Icons.access_time, 'Time', '9:30 AM'),
+                  const SizedBox(height: 12),
+                  const Divider(thickness: 1),
+                  const SizedBox(height: 12),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Services',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _infoRowWithIcon(Icons.local_car_wash, 'EC1', '₱130.00'),
+                  _infoRowWithIcon(Icons.local_car_wash_outlined, 'EC2', '₱160.00'),
+                  const Divider(thickness: 1, height: 28),
+                  _infoRowWithIcon(Icons.attach_money, 'Total', '₱290.00', isBold: true),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: status == 'pending'
+                        ? ElevatedButton.icon(
+                      onPressed: () {
+                        _cancelBooking(index);
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFDA3E52),
+                        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 5,
+                      ),
+                      icon: const Icon(Icons.cancel, color: Colors.white),
+                      label: const Text(
+                        'Cancel Booking',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                    )
+                        : Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: status == 'cancelled'
+                            ? Colors.red.shade100
+                            : Colors.green.shade100,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Text(
+                        status == 'cancelled'
+                            ? 'Booking Cancelled'
+                            : 'Approved by Admin',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: status == 'cancelled'
+                              ? Colors.red.shade700
+                              : Colors.green.shade700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRowWithIcon(IconData icon, String label, String value, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$label:',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: Colors.black87,
+            ),
+          ),
+        ],
       ),
     );
   }
