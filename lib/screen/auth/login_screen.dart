@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'forgotpass.dart'; // import the screen directly
 
 class LoginPage extends StatefulWidget {
@@ -36,12 +39,54 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-  void _handleLogin() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Logging in...')),
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+
+    final url = Uri.parse('http://192.168.68.117:5000/api/auth/login');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Logging in...')),
+    );
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'usernameOrEmail': username,
+          'password': password,
+        }),
       );
-      Navigator.pushReplacementNamed(context, '/home');
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // Success
+        final token = responseData['token']; // Available if needed
+        final user = responseData['user']; // Optional user data
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(responseData['message'] ?? 'Login successful')),
+          );
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(responseData['message'] ?? 'Login failed')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An error occurred. Please try again.')),
+        );
+      }
     }
   }
 
@@ -62,7 +107,7 @@ class _LoginPageState extends State<LoginPage> {
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.white70),
         filled: true,
-        fillColor: Colors.white.withAlpha(51),
+        fillColor: const Color(0x33FFFFFF),
         contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
@@ -151,8 +196,6 @@ class _LoginPageState extends State<LoginPage> {
                     onToggleObscure: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
                   const SizedBox(height: 10),
-
-                  // Forgot Password Link
                   Align(
                     alignment: Alignment.centerRight,
                     child: GestureDetector(
@@ -172,10 +215,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 30),
-
-                  // LOGIN Button
                   GestureDetector(
                     onTapDown: (_) => setState(() => _isPressed = true),
                     onTapUp: (_) {
@@ -207,10 +247,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
-                  // Sign Up Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -232,10 +269,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 20),
-
-                  // OR Separator
                   Row(
                     children: const [
                       Expanded(
@@ -259,10 +293,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 20),
-
-                  // Google Sign-in Button
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -271,7 +302,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: TextButton.icon(
                       onPressed: () {
-                        // signInWithGoogle(context);
+                        // TODO: Google Sign-in logic
                       },
                       icon: Image.asset(
                         'assets/images/google_icon.jpg',
@@ -293,7 +324,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
                 ],
               ),

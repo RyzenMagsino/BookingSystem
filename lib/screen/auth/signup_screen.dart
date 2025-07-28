@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'otp_verification_screen.dart';
+
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -55,33 +59,77 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (value != _passwordController.text) return 'Passwords do not match';
     return null;
   }
+  void _showDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          )
+        ],
+      ),
+    );
+  }
 
-  void _handleSignUp() {
+
+  void _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Signed up successfully! Redirecting to login...'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      setState(() => _isPressed = true);
 
-      _firstNameController.clear();
-      _lastNameController.clear();
-      _usernameController.clear();
-      _phoneController.clear();
-      _emailController.clear();
-      _passwordController.clear();
-      _confirmPasswordController.clear();
-
-      Future.delayed(const Duration(seconds: 2), () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
+      try {
+        final response = await http.post(
+          Uri.parse('http://192.168.68.117:5000/api/auth/signup'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'firstName': _firstNameController.text.trim(),
+            'lastName': _lastNameController.text.trim(),
+            'username': _usernameController.text.trim(),
+            'phone': _phoneController.text.trim(),
+            'email': _emailController.text.trim(),
+            'password': _passwordController.text.trim(),
+          }),
         );
-      });
+
+        final data = jsonDecode(response.body);
+
+        if (response.statusCode == 201) {
+          if (data['message'] == 'Verification required') {
+            final email = _emailController.text.trim(); // ✅ Save email before clearing
+            print('✅ Sending email to OTP screen: $email');
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => OTPVerificationScreen(email: email),
+              ),
+            ).then((_) {
+              // ✅ Clear fields AFTER navigation
+              _firstNameController.clear();
+              _lastNameController.clear();
+              _usernameController.clear();
+              _phoneController.clear();
+              _emailController.clear();
+              _passwordController.clear();
+              _confirmPasswordController.clear();
+            });
+          } else {
+            _showDialog('Success', data['message'] ?? 'Registration successful');
+          }
+        } else {
+          _showDialog('Error', data['message'] ?? 'Registration failed');
+        }
+      } catch (e) {
+        print('❌ Registration error: $e');
+        _showDialog('Error', 'An error occurred. Please try again.');
+      }
     }
   }
+
+
 
   Widget _buildTextField({
     required String hint,

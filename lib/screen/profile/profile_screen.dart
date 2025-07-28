@@ -12,14 +12,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _firstName = "John";
   String _lastName = "Doe";
   String _email = "john.doe@email.com";
+  String _phoneNumber = "09981234567";
+  String _username = "johndoe123";
 
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   bool _isEditingFirstName = false;
   bool _isEditingLastName = false;
   bool _isEditingEmail = false;
+  bool _isEditingPhone = false;
 
   @override
   void initState() {
@@ -27,6 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _firstNameController.text = _firstName;
     _lastNameController.text = _lastName;
     _emailController.text = _email;
+    _phoneController.text = _phoneNumber;
   }
 
   void _updateProfile() {
@@ -34,9 +39,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _firstName = _firstNameController.text;
       _lastName = _lastNameController.text;
       _email = _emailController.text;
+      _phoneNumber = _phoneController.text;
+
       _isEditingFirstName = false;
       _isEditingLastName = false;
       _isEditingEmail = false;
+      _isEditingPhone = false;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -141,6 +149,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 12),
+                            Text(
+                              _username,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                             const SizedBox(height: 24),
                             _buildEditableField(
                               label: 'First Name',
@@ -174,6 +191,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 });
                               },
                             ),
+                            const SizedBox(height: 16),
+                            _buildEditableField(
+                              label: 'Phone Number',
+                              controller: _phoneController,
+                              isEditing: _isEditingPhone,
+                              onToggleEdit: () {
+                                setState(() {
+                                  _isEditingPhone = !_isEditingPhone;
+                                });
+                              },
+                            ),
                             const SizedBox(height: 24),
                             SizedBox(
                               width: double.infinity,
@@ -197,7 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.redAccent,
+                                  backgroundColor: Colors.blue,
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
