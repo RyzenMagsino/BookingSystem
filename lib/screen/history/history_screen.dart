@@ -1,105 +1,126 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import '../../screen/history/historydetails.dart';
+import '../../models/booking_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'historydetails.dart'; // make sure this import matches your file
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  List<Booking> bookings = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchBookings();
+  }
+
+  Future<void> fetchBookings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final response = await http.get(
+      Uri.parse('http://192.168.3.187:5000/api/book/my-bookings'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        bookings = data.map((json) => Booking.fromJson(json)).toList();
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      debugPrint('Failed to load bookings: ${response.body}');
+
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xFF2299A2),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.3),
-                offset: const Offset(0, 4),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            title: const Text(
-              'E&C\nCarwash',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Cinzel',
-                color: Color(0xFF006B79),
-                height: 1.1,
-              ),
-            ),
-            actions: [
-              // Profile Image Icon (on the right side)
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/profile'); // Navigate to profile screen
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage('https://www.example.com/your-profile-image.jpg'), // Replace with actual image URL
-                    radius: 18,
-                  ),
-                ),
-              ),
-              // 3-dots Menu (Dropdown below the profile image)
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: Colors.black87),
-                onSelected: (value) {
-                  if (value == 'logout') {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text("Logout"),
-                        content: const Text("Are you sure you want to logout?"),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text("Cancel"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context); // Close dialog
-                              // Clear navigation stack and go to login
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                '/login',
-                                    (Route<dynamic> route) => false,
-                              );
-                            },
-                            child: const Text("Logout", style: TextStyle(color: Colors.red)),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                },
-                // Position the dropdown just below the profile image
-                offset: Offset(0, 50),  // Adjust this value to fine-tune the dropdown position
-                itemBuilder: (BuildContext context) => [
-                  PopupMenuItem(
-                    value: 'logout',
-                    child: Center(
-                      child: Text('Logout', style: TextStyle(color: Colors.red)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 4,
+        title: const Text(
+          'E&C\nCarwash',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            fontFamily: 'Cinzel',
+            color: Color(0xFF006B79),
+            height: 1.1,
           ),
         ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/profile');
+            },
+            child: const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: CircleAvatar(
+                backgroundImage: NetworkImage('https://www.example.com/your-profile-image.jpg'),
+                radius: 18,
+              ),
+            ),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.black87),
+            onSelected: (value) {
+              if (value == 'logout') {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text("Logout"),
+                    content: const Text("Are you sure you want to logout?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.clear();
+                          Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+                        },
+                        child: const Text("Logout", style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+            offset: const Offset(0, 50),
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(
+                value: 'logout',
+                child: Center(child: Text('Logout', style: TextStyle(color: Colors.red))),
+              ),
+            ],
+          ),
+        ],
       ),
-
-      body: Container(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          : Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFF2299A2), Color(0xFF1F7E90)],
@@ -120,18 +141,22 @@ class HistoryScreen extends StatelessWidget {
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
-                      height: 1.2,
-                      shadows: [Shadow(blurRadius: 2, offset: Offset(1, 1))],
                     ),
                   ),
                 ),
               ),
-
-              // ── History Cards ──
               Expanded(
-                child: ListView.builder(
-                  itemCount: 2,
+                child: bookings.isEmpty
+                    ? const Center(child: Text('No bookings found', style: TextStyle(color: Colors.white)))
+                    : ListView.builder(
+                  itemCount: bookings.length,
                   itemBuilder: (context, index) {
+                    final booking = bookings[index];
+                    final total = booking.services.fold<double>(
+                      0,
+                          (sum, service) => sum + ((service['price'] ?? 0) as num).toDouble(),
+                    );
+
                     return GestureDetector(
                       onTap: () {
                         showModalBottomSheet(
@@ -145,7 +170,7 @@ class HistoryScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
                                     color: Colors.black26,
                                     blurRadius: 10,
@@ -155,10 +180,13 @@ class HistoryScreen extends StatelessWidget {
                               ),
                               height: 450,
                               child: BookingDetailsScreen(
-                                date: '05/27/2025',
-                                carType: 'Sedan',
-                                total: '290.00',
+                                date: booking.date,
+                                time: booking.time,
+                                carType: booking.carType,
+                                services: List<Map<String, dynamic>>.from(booking.services),
+                                total: total,
                               ),
+
                             ),
                           ),
                         );
@@ -169,39 +197,13 @@ class HistoryScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: const Color(0xFF165661),
                           borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              offset: const Offset(2, 3),
-                              blurRadius: 4,
-                            ),
-                          ],
                         ),
-                        child: const Column(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Date:', style: TextStyle(color: Colors.white)),
-                                Text('05/27/2025', style: TextStyle(color: Colors.white)),
-                              ],
-                            ),
-                            SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Car Type:', style: TextStyle(color: Colors.white)),
-                                Text('Sedan', style: TextStyle(color: Colors.white)),
-                              ],
-                            ),
-                            SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Total:', style: TextStyle(color: Colors.white)),
-                                Text('290.00', style: TextStyle(color: Colors.white)),
-                              ],
+                            _infoRow('Date:', booking.date),
+                            _infoRow('Car Type:', booking.carType),
+                            _infoRow('Total:', total.toStringAsFixed(2)
                             ),
                           ],
                         ),
@@ -210,26 +212,13 @@ class HistoryScreen extends StatelessWidget {
                   },
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              // ── Navigation Pills ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _navPill(
-                    'Home',
-                    onTap: () => Navigator.pushNamed(context, '/home'),
-                  ),
-                  _navPill(
-                    'Pending',
-                    onTap: () => Navigator.pushNamed(context, '/pending'),
-                  ),
-                  _navPill(
-                    'History',
-                    isActive: true,
-                    onTap: () {},
-                  ),
+                  _navPill('Home', onTap: () => Navigator.pushNamed(context, '/home')),
+                  _navPill('Pending', onTap: () => Navigator.pushNamed(context, '/pending')),
+                  _navPill('History', isActive: true, onTap: () {}),
                 ],
               ),
             ],
@@ -239,12 +228,20 @@ class HistoryScreen extends StatelessWidget {
     );
   }
 
-  // ── Styled Navigation Pill ──
-  Widget _navPill(
-      String label, {
-        bool isActive = false,
-        required VoidCallback onTap,
-      }) {
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white)),
+          Text(value, style: const TextStyle(color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
+  Widget _navPill(String label, {bool isActive = false, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -252,13 +249,6 @@ class HistoryScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFF00D6C6) : const Color(0xFF88D4DB),
           borderRadius: BorderRadius.circular(24),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black38,
-              offset: Offset(2, 2),
-              blurRadius: 3,
-            ),
-          ],
         ),
         child: Text(
           label,
@@ -266,13 +256,7 @@ class HistoryScreen extends StatelessWidget {
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.white,
-            shadows: [
-              Shadow(
-                offset: Offset(2, 2),
-                blurRadius: 2,
-                color: Colors.black54,
-              ),
-            ],
+            shadows: [Shadow(offset: Offset(2, 2), blurRadius: 2, color: Colors.black54)],
           ),
         ),
       ),

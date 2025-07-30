@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'forgotpass.dart'; // import the screen directly
 
@@ -45,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
-    final url = Uri.parse('http://192.168.68.117:5000/api/auth/login');
+    final url = Uri.parse('http://192.168.3.187:5000/api/auth/login');
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Logging in...')),
@@ -64,9 +65,14 @@ class _LoginPageState extends State<LoginPage> {
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Success
-        final token = responseData['token']; // Available if needed
-        final user = responseData['user']; // Optional user data
+        final token = responseData['token'];
+        final user = responseData['user'];
+
+        // Save token to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+        final loadedToken = prefs.getString('token');
+        print('Loaded token: $loadedToken');
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

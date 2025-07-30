@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -77,19 +80,50 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  void _changePassword() {
+  void _changePassword() async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password successfully changed!')),
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You are not logged in.')),
+        );
+        return;
+      }
+
+      final response = await http.put(
+        Uri.parse('http://192.168.3.187:5000/api/user/change-password'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'oldPassword': _oldPasswordController.text.trim(),
+          'newPassword': _newPasswordController.text.trim(),
+        }),
       );
 
-      _oldPasswordController.clear();
-      _newPasswordController.clear();
-      _confirmPasswordController.clear();
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password changed successfully!')),
+        );
 
-      Future.delayed(const Duration(seconds: 1), () {
-        Navigator.pushReplacementNamed(context, '/login');
-      });
+        _oldPasswordController.clear();
+        _newPasswordController.clear();
+        _confirmPasswordController.clear();
+
+        // Optional: Logout after password change
+        Future.delayed(const Duration(seconds: 2), () {
+          prefs.remove('token');
+          Navigator.pushReplacementNamed(context, '/login');
+        });
+      } else {
+        final res = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(res['message'] ?? 'Failed to change password')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fix the errors above')),

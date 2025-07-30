@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   final String date;
+  final String time;
   final String carType;
-  final String total;
+  final List<Map<String, dynamic>> services;
+  final double total;
 
   const BookingDetailsScreen({
     Key? key,
     required this.date,
+    required this.time,
     required this.carType,
+    required this.services,
     required this.total,
   }) : super(key: key);
 
@@ -34,12 +38,12 @@ class BookingDetailsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.75,
-          padding: const EdgeInsets.only(top: 22, bottom: 22), // no left/right padding
+          padding: const EdgeInsets.only(top: 22, bottom: 22),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back button with space
+              // Back button
               Padding(
                 padding: const EdgeInsets.only(left: 20, bottom: 18),
                 child: IconButton(
@@ -55,7 +59,7 @@ class BookingDetailsScreen extends StatelessWidget {
               const SizedBox(height: 10),
               _infoRow('Date:', date, labelStyle, valueStyle),
               const SizedBox(height: 10),
-              _infoRow('Time:', '9:30 am', labelStyle, valueStyle),
+              _infoRow('Time:', time, labelStyle, valueStyle),
 
               const SizedBox(height: 18),
               Padding(
@@ -63,9 +67,17 @@ class BookingDetailsScreen extends StatelessWidget {
                 child: Text('Services:', style: labelStyle),
               ),
               const SizedBox(height: 10),
-              _infoRow('EC1', '130.00', valueStyle, valueStyle),
-              const SizedBox(height: 6),
-              _infoRow('EC1', '160.00', valueStyle, valueStyle),
+
+              ...services.map((service) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(service['name'] ?? '', style: valueStyle),
+                    Text('${service['price'].toStringAsFixed(2)}', style: valueStyle),
+                  ],
+                ),
+              )),
 
               const SizedBox(height: 18),
               const Divider(thickness: 1, color: Colors.grey),
@@ -73,7 +85,7 @@ class BookingDetailsScreen extends StatelessWidget {
 
               _infoRow(
                 'Total:',
-                total,
+                '₱${total.toStringAsFixed(2)}',
                 labelStyle.copyWith(fontSize: 17),
                 valueStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 17),
               ),
@@ -86,7 +98,7 @@ class BookingDetailsScreen extends StatelessWidget {
 
   Widget _infoRow(String label, String value, TextStyle labelStyle, TextStyle valueStyle) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20), // only this padding defines "box edge"
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

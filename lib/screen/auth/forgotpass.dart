@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -10,12 +12,48 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   bool _isEmailValid = true;
   String? _emailError;
+  bool _isLoading = false;
 
-  // Simple email regex
   final RegExp emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+  Future<void> _sendResetLink() async {
+    setState(() => _isLoading = true);
+
+    final url = Uri.parse('http://192.168.3.187:5000/api/user/forgot-password');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': _emailController.text}),
+    );
+
+    setState(() => _isLoading = false);
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      Navigator.pushNamed(
+        context,
+        '/verify-otp',
+        arguments: {'email': _emailController.text},
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Error'),
+          content: Text(data['message'] ?? 'Something went wrong.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -38,21 +76,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               children: [
                 const Text(
                   'E&C',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
-                  ),
+                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 const Text(
                   'CARWASH',
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
-                  ),
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 const SizedBox(height: 30),
                 Container(
@@ -66,24 +94,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 30),
                 const Text(
                   'Trouble logging in?',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
                 ),
                 const SizedBox(height: 10),
                 const Text(
                   "Enter your email and we'll send you a link to get back into your account.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 30),
-
-                // Email Input with red border and error message
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
@@ -117,7 +136,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         });
                         return '';
                       }
-
                       setState(() {
                         _isEmailValid = true;
                         _emailError = null;
@@ -126,8 +144,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     },
                   ),
                 ),
-
-                // Show error message below the input
                 if (_emailError != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
@@ -139,29 +155,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     ),
                   ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: _isLoading
+                        ? null
+                        : () {
                       if (_formKey.currentState!.validate()) {
-                        final email = _emailController.text;
-
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('Reset Link Sent'),
-                            content: Text('A login link has been sent to $email'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          ),
-                        );
+                        _sendResetLink();
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -172,15 +174,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
-                      'Send login link',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Send login link', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 Row(
                   children: const [
                     Expanded(child: Divider(color: Colors.white38)),
@@ -191,33 +190,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     Expanded(child: Divider(color: Colors.white38)),
                   ],
                 ),
-
                 const SizedBox(height: 16),
-
                 TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/signup');
-                  },
-                  child: const Text(
-                    'Create new account',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  onPressed: () => Navigator.pushNamed(context, '/signup'),
+                  child: const Text('Create new account', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                 ),
-
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Back to login',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Back to login', style: TextStyle(color: Colors.white70)),
                 ),
               ],
             ),

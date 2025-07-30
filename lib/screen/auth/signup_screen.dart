@@ -82,7 +82,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       try {
         final response = await http.post(
-          Uri.parse('http://192.168.68.117:5000/api/auth/signup'),
+          Uri.parse('http://192.168.3.187:5000/api/auth/signup'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'firstName': _firstNameController.text.trim(),

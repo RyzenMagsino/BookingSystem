@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:booking/screen/auth/ChangePass.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -9,16 +12,13 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _firstName = "John";
-  String _lastName = "Doe";
-  String _email = "john.doe@email.com";
-  String _phoneNumber = "09981234567";
-  String _username = "johndoe123";
-
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+
+  String _username = "";
+  String? _token;
 
   bool _isEditingFirstName = false;
   bool _isEditingLastName = false;
@@ -28,28 +28,82 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _firstNameController.text = _firstName;
-    _lastNameController.text = _lastName;
-    _emailController.text = _email;
-    _phoneController.text = _phoneNumber;
+    _loadTokenAndProfile();
   }
 
-  void _updateProfile() {
-    setState(() {
-      _firstName = _firstNameController.text;
-      _lastName = _lastNameController.text;
-      _email = _emailController.text;
-      _phoneNumber = _phoneController.text;
+  Future<void> _loadTokenAndProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
 
-      _isEditingFirstName = false;
-      _isEditingLastName = false;
-      _isEditingEmail = false;
-      _isEditingPhone = false;
-    });
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not authenticated.")),
+      );
+      return;
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Profile updated successfully!")),
+    setState(() => _token = token);
+
+    final response = await http.get(
+      Uri.parse('http://192.168.3.187:5000/api/auth/me'),
+      headers: {'Authorization': 'Bearer $token'},
     );
+
+    if (response.statusCode == 200) {
+      final user = jsonDecode(response.body)['user'];
+      final nameParts = user['name'].split(' ');
+
+      _firstNameController.text = nameParts.first;
+      _lastNameController.text = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+      _emailController.text = user['email'] ?? '';
+      _phoneController.text = user['phone'] ?? '';
+      setState(() => _username = user['username']);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to load profile.")),
+      );
+    }
+  }
+
+  Future<void> _updateProfile() async {
+    print('Update profile button pressed');
+    if (_token == null) return;
+
+    final url = Uri.parse('http://192.168.3.187:5000/api/auth/update-profile');
+    final requestBody = {
+      'firstName': _firstNameController.text.trim(),
+      'lastName': _lastNameController.text.trim(),
+      'phone': _phoneController.text.trim(),
+    };
+    print('Request body: ' + requestBody.toString());
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_token',
+      },
+      body: jsonEncode(requestBody),
+    );
+    print('Response status: \'${response.statusCode}\'');
+    print('Response body: ' + response.body);
+
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      setState(() {
+        _isEditingFirstName = false;
+        _isEditingLastName = false;
+        _isEditingEmail = false;
+        _isEditingPhone = false;
+      });
+      await _loadTokenAndProfile(); // Refresh profile data after update
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(data['message'] ?? "Profile updated successfully!")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(data['message'] ?? "Failed to update profile.")),
+      );
+    }
   }
 
   Widget _buildEditableField({
@@ -164,9 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               controller: _firstNameController,
                               isEditing: _isEditingFirstName,
                               onToggleEdit: () {
-                                setState(() {
-                                  _isEditingFirstName = !_isEditingFirstName;
-                                });
+                                setState(() => _isEditingFirstName = !_isEditingFirstName);
                               },
                             ),
                             const SizedBox(height: 16),
@@ -175,31 +227,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               controller: _lastNameController,
                               isEditing: _isEditingLastName,
                               onToggleEdit: () {
-                                setState(() {
-                                  _isEditingLastName = !_isEditingLastName;
-                                });
+                                setState(() => _isEditingLastName = !_isEditingLastName);
                               },
                             ),
                             const SizedBox(height: 16),
-                            _buildEditableField(
-                              label: 'Email',
+                            TextFormField(
                               controller: _emailController,
-                              isEditing: _isEditingEmail,
-                              onToggleEdit: () {
-                                setState(() {
-                                  _isEditingEmail = !_isEditingEmail;
-                                });
-                              },
+                              readOnly: true,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: 'Email',
+                                labelStyle: const TextStyle(color: Colors.white70),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.2),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
                             ),
+
                             const SizedBox(height: 16),
                             _buildEditableField(
                               label: 'Phone Number',
                               controller: _phoneController,
                               isEditing: _isEditingPhone,
                               onToggleEdit: () {
-                                setState(() {
-                                  _isEditingPhone = !_isEditingPhone;
-                                });
+                                setState(() => _isEditingPhone = !_isEditingPhone);
                               },
                             ),
                             const SizedBox(height: 24),
