@@ -28,7 +28,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('http://192.168.3.187:5000/api/book/my-bookings'),
+      Uri.parse('https://bookingbackend-1-uf30.onrender.com/api/book/my-bookings'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

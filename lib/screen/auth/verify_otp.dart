@@ -18,7 +18,7 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
   Future<void> _verifyOTP() async {
     setState(() => _isLoading = true);
 
-    final url = Uri.parse('http://192.168.3.187:5000/api/user/verify-otp');
+    final url = Uri.parse('https://bookingbackend-1-uf30.onrender.com/api/user/verify-otp');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},

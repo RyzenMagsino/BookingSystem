@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
-    final url = Uri.parse('http://192.168.3.187:5000/api/auth/login');
+    final url = Uri.parse('https://bookingbackend-1-uf30.onrender.com/api/auth/login');
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Logging in...')),
@@ -275,62 +275,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: const [
-                      Expanded(
-                        child: Divider(
-                          color: Colors.white54,
-                          thickness: 1,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text(
-                          'OR',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          color: Colors.white54,
-                          thickness: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: TextButton.icon(
-                      onPressed: () {
-                        // TODO: Google Sign-in logic
-                      },
-                      icon: Image.asset(
-                        'assets/images/google_icon.jpg',
-                        height: 24,
-                      ),
-                      label: const Text(
-                        'Continue with Google',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),

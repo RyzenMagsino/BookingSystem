@@ -45,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _token = token);
 
     final response = await http.get(
-      Uri.parse('http://192.168.3.187:5000/api/auth/me'),
+      Uri.parse('https://bookingbackend-1-uf30.onrender.com/api/auth/me'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -69,7 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     print('Update profile button pressed');
     if (_token == null) return;
 
-    final url = Uri.parse('http://192.168.3.187:5000/api/auth/update-profile');
+    final url = Uri.parse('https://bookingbackend-1-uf30.onrender.com/api/auth/update-profile');
     final requestBody = {
       'firstName': _firstNameController.text.trim(),
       'lastName': _lastNameController.text.trim(),

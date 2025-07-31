@@ -20,7 +20,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.3.187:5000/api/auth/verify-otp'), // adjust IP for real device
+        Uri.parse('https://bookingbackend-1-uf30.onrender.com/api/auth/verify-otp'), // adjust IP for real device
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': widget.email.trim(),

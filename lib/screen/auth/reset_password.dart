@@ -27,7 +27,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     setState(() => _isLoading = true);
 
-    final url = Uri.parse('http://192.168.3.187:5000/api/user/reset-password');
+    final url = Uri.parse('https://bookingbackend-1-uf30.onrender.com/api/user/reset-password');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},

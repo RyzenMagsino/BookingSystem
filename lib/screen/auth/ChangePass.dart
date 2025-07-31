@@ -93,7 +93,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       }
 
       final response = await http.put(
-        Uri.parse('http://192.168.3.187:5000/api/user/change-password'),
+        Uri.parse('https://bookingbackend-1-uf30.onrender.com/api/user/change-password'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
